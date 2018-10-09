@@ -21,11 +21,11 @@
     2. A folder with all the photos you've uploaded to Strava.
     3. A folder with routes you've created in GPX format.
     4. CSV files that include the following
-      + All the posts and comments you've posted.
-      + Contacts you've synced to Strava.
-      + Clubs and events you've created
-      + The information in your profile including your gear and goals.
-      + Actions you've performed including kudos given and routes or segments you've starred.
+       + All the posts and comments you've posted.
+       + Contacts you've synced to Strava.
+       + Clubs and events you've created
+       + The information in your profile including your gear and goals.
+       + Actions you've performed including kudos given and routes or segments you've starred.
 
 
 * Run Analysis of one single run (.fit)
