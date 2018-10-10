@@ -1,0 +1,25 @@
+Run time: 2016.11.23 at 18h07 
+ average altitude in meters: 292.5 meters. 
+ the number of meters assended: 51.4 meters. 
+ the number of meters desended: 61.6 meters. 
+ the time of fastest 1Km in h:m:s is:  0:04:42
+ the slowest speed in: 2.40 m/s.  
+ the fastest speed in: 3.86 m/s.  
+ the average speed in: 3.47 m/s.  
+ the slowest pace in h:m:s per Km:  0:06:57
+ the fastest pace in h:m:s per Km:  0:04:18
+ the average pace in h:m:s per Km:  0:04:47
+ the slowest pace in h:m:s per mile:  0:11:11
+ the fastest pace in h:m:s per mile:  0:06:56
+ the average pace in h:m:s per mile:  0:07:43
+ the minimum cadence in rpm:  77
+ the maximum cadence in rpm:  94
+ the average cadence in rpm:  87
+ the minimum heart rate in bpm :  100
+ the maximum heart rate in bpm :  175
+ the average heart rate in bpm :  162
+ the total distance is: 5.1 miles.  
+ the total distance is: 8.2 km.  
+ the total time used in h:m:s is:  0:39:18
+ the starting time point in h:m:s is:  2016-11-23 18:07:20
+ the stopping time point in h:m:s is:  2016-11-23 18:46:38

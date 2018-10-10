@@ -55,19 +55,36 @@ class run_record:
       -- getTotalDistanceKm():    return the total distance in Km
       -- getTotalDistanceMeter(): return the total distance in meter
       -- getTotalTimePassed():    return the total time used 
-      -- getStartTime():          return the starting time point
-      -- getEndTime():            return the stopping time point
+      -- getStartTime():          return the starting time point in <datetime>
+      -- getEndTime():            return the stopping time point in <datetime>
+      -- getAltitudeList():       return the list of altitude data in meter
+      -- getCadenceList():        return the list of cadence data in rpm
+      -- getDistanceList():       return the list of distance data in meter
+      -- getHeartRateList():      return the list of heart rate data in bpm
+      -- getSpeedList():          return the list of speed data in m/s
+      -- getPaceKmList():         return the list of the pace in minutes per km
+      -- getDateTimeList():       return the list of time stamps in <datetime>
+      -- getElapsedTimeList():    return the list of the elapsed time in <timedelta>
+      -- getElapsedMinutesList(): return the list of the elapsed minutes in <float> minutes
   '''
 
   _mile_in_meter = 1609.34 # number of meters in a mile
 
-  def __init__(self, ffitname):
+  def __init__(self, ffitname, hours_dif = timedelta(hours = -6)):
+    #
+    # ffitname: input file name.fit
+    # hours_dif: difference of hours compared to UTC,
+    #  US Central is 6 hours later, so set to -6
+    # 
     self._altitude = [] # <float> meter
     self._cadence = []  # <int> rpm
     self._distance = [] # <float> meter
     self._heart_rate = [] # <int> bpm
     self._speed = [] # <float> m/s
+    self._pacekm = [] # <float> minutes per km 
     self._timestamp = [] # <'datetime.datetime'> 
+    self._elapsedtime = [] # <timedelta>
+    self._elapsedminutes = [] #  <float> of minutes
 
     self._altitude_up = 0.
     self._altitude_down = 0.
@@ -91,10 +108,22 @@ class run_record:
     #
     # private functions called for calculation
     #
-    self._read_fit_file( ffitname )
+    self._read_fit_file( ffitname, hours_dif )
     self._calculation()
 
-  def _read_fit_file(self, ffitname ):
+  # default is 1Km = 1000 m, use 1609.34 for mile
+  def _calculatePaceFromSpeed(self, speed_m_per_s, unit=1000.):
+    if speed_m_per_s <= 0.001:
+      logging.warning( ' Speed is %6.3f m/s. Too slow! Skip. ' % speed_m_per_s )
+      return timedelta(0)
+    nsec = int( unit / speed_m_per_s )
+    nminute = int( nsec / 60 )
+    nsec = nsec % 60
+    # return (nminute, nsec) 
+    return timedelta(minutes=nminute, seconds=nsec) 
+
+
+  def _read_fit_file(self, ffitname, hours_dif ):
     #
     # read in all the records associated to this run
     #
@@ -107,8 +136,13 @@ class run_record:
     # With all the record information, one can calculate the more interesting
     #   variables during the run, like average pace, elapsed time, etc.
     #
+    irec = 0
     for record in fitfile.get_messages('record'):
-       # Go through all the data entries in this record
+      irec = irec + 1
+      if irec <= 2:
+        continue # skip the first two records, since they are often with speed = 0
+
+      # Go through all the data entries in this record
       for record_data in record:
   
         if record_data.name == "altitude":
@@ -121,8 +155,17 @@ class run_record:
           self._heart_rate.append( record_data.value ) #<int> bpm
         elif record_data.name == "speed":
           self._speed.append( record_data.value ) #<float> meter/second
+          pace_dt = self._calculatePaceFromSpeed( record_data.value )
+          if pace_dt.total_seconds() < 1:
+            self._pacekm.append( 7. ) # 7 minutes per Km, impossibly slow!
+          else:
+            self._pacekm.append( pace_dt.total_seconds() / 60. )
         elif record_data.name == "timestamp":
-          self._timestamp.append( record_data.value ) #<datetime>
+          time_pos = record_data.value + hours_dif #<datetime>
+          self._timestamp.append( time_pos ) #<datetime>
+          dtm = time_pos - self._timestamp[0]
+          self._elapsedtime.append( dtm )
+          self._elapsedminutes.append( dtm.total_seconds() / 60. )
 
     self._num_records = len( self._altitude )
     if self._num_records <= 0:
@@ -189,15 +232,6 @@ class run_record:
 
     self._fast1km_time = self._time_of_fastest()
     self._fast1ml_time = self._time_of_fastest( self._mile_in_meter )
-
-  # default is 1Km = 1000 m, use 1609.34 for mile
-  def _calculatePaceFromSpeed(self, speed_m_per_s, unit=1000.):
-    nsec = int( unit / speed_m_per_s )
-    nminute = int( nsec / 60 )
-    nsec = nsec % 60
-    # return (nminute, nsec) 
-    return timedelta(minutes=nminute, seconds=nsec) 
-
 
   #############################################
   ############# Public Functions ##############
@@ -279,3 +313,30 @@ class run_record:
 
   def getEndTime( self ):
     return self._timestamp[ self._num_records - 1 ]
+
+  def getAltitudeList( self ):
+    return self._altitude
+
+  def getCadenceList( self ):
+    return self._cadence
+
+  def getDistanceList( self ):
+    return self._distance
+
+  def getHeartRateList( self ):
+    return self._heart_rate
+
+  def getSpeedList( self ):
+    return self._speed
+
+  def getPaceKmList( self ):
+    return self._pacekm
+
+  def getDateTimeList( self ):
+    return self._timestamp
+
+  def getElapsedTimeList( self ):
+    return self._elapsedtime
+
+  def getElapsedMinutesList( self ):
+    return self._elapsedminutes

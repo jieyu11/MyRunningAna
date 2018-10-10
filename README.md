@@ -30,3 +30,4 @@
 
 * Run Analysis of one single run (.fit)
   - python2.7 read_fit.py data/test.fit
+  - move outputs to out/.
