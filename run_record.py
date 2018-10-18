@@ -32,6 +32,7 @@ class run_record:
       5. show the results by calling 
 
     Functions:
+      -- getListMeasures():       return the list of measured variables: altitude, cadence, distance, etc.
       -- getAverageAltitude():    return average altitude in meters
       -- getAssendMeters():       return the number of meters assended
       -- getDesendMeters():       return the number of meters desended
@@ -76,6 +77,7 @@ class run_record:
     # hours_dif: difference of hours compared to UTC,
     #  US Central is 6 hours later, so set to -6
     # 
+    self._exist_vars = [] # existing variable in the data from input file: altitude, etc
     self._altitude = [] # <float> meter
     self._cadence = []  # <int> rpm
     self._distance = [] # <float> meter
@@ -136,15 +138,29 @@ class run_record:
     # With all the record information, one can calculate the more interesting
     #   variables during the run, like average pace, elapsed time, etc.
     #
-    irec = 0
+    self._num_records = 0
     for record in fitfile.get_messages('record'):
-      irec = irec + 1
-      if irec <= 2:
-        continue # skip the first two records, since they are often with speed = 0
+
+      skip = False
+      for record_data in record:
+        #
+        # 0.2 m / s == 0.72 Km / hour, walking or running cannot be that slow!!!!
+        #
+        if record_data.name == "speed" and record_data.value < 0.2:
+          skip = True
+          break
+
+      if skip: continue
+      self._num_records = self._num_records + 1
 
       # Go through all the data entries in this record
       for record_data in record:
-  
+        #if record_data.units:
+        #    print " * %s: %s %s" % ( record_data.name, record_data.value, record_data.units)
+        #else:
+        #    print " * %s: %s" % (record_data.name, record_data.value)
+
+ 
         if record_data.name == "altitude":
           self._altitude.append( record_data.value ) #<float> meter
         elif record_data.name == "cadence": 
@@ -157,7 +173,11 @@ class run_record:
           self._speed.append( record_data.value ) #<float> meter/second
           pace_dt = self._calculatePaceFromSpeed( record_data.value )
           if pace_dt.total_seconds() < 1:
-            self._pacekm.append( 7. ) # 7 minutes per Km, impossibly slow!
+            self._pacekm.append( 15. ) # 15 minutes per Km, impossibly slow!
+          #elif pace_dt.total_seconds() > 900: # if it is over 15 minutes, why???
+          #  logging.warning( "Found record with pace: " + str(pace_dt.total_seconds() / 60.) + " minutes / Km. Convert to 15 minutes / Km. " )
+          #  logging.warning( "Found speed: " + str(record_data.value) )
+          #  self._pacekm.append( 15. ) 
           else:
             self._pacekm.append( pace_dt.total_seconds() / 60. )
         elif record_data.name == "timestamp":
@@ -166,8 +186,17 @@ class run_record:
           dtm = time_pos - self._timestamp[0]
           self._elapsedtime.append( dtm )
           self._elapsedminutes.append( dtm.total_seconds() / 60. )
+        else:
+          continue
 
-    self._num_records = len( self._altitude )
+    if len( self._altitude   ) == self._num_records : self._exist_vars.append( "altitude"   )
+    if len( self._cadence    ) == self._num_records : self._exist_vars.append( "cadence"    )
+    if len( self._distance   ) == self._num_records : self._exist_vars.append( "distance"   )
+    if len( self._heart_rate ) == self._num_records : self._exist_vars.append( "heart_rate" )
+    if len( self._speed      ) == self._num_records : self._exist_vars.append( "speed"      )
+    if len( self._timestamp  ) == self._num_records : self._exist_vars.append( "time"  )
+
+      
     if self._num_records <= 0:
       logging.error( ' Input ' + ffitname + ' has no record installed. Check! ')
     else:
@@ -182,6 +211,9 @@ class run_record:
     idx_1 = 0 # ending point
     delta_dist = 0 # distance so far recorded from idx_0
     time_min = timedelta(days=2, hours = 1) # initialize with a huge number
+    if not "time" in self._exist_vars:
+      return time_min 
+
     for idx in range( self._num_records ):
       while( idx_1 < self._num_records and self._distance[ idx_1 ] - self._distance[ idx ] < dist_set ):
         idx_1 = idx_1 + 1
@@ -192,7 +224,7 @@ class run_record:
       if ( dtime < time_min ): time_min = dtime
 
     if( time_min > timedelta(days=2) ):
-      logging.error( ' Running distance shorter then ', dist_set, '! Cannot calculate the minimum time.')
+      logging.error( ' Running distance shorter than ', dist_set, '! Cannot calculate the minimum time.')
 
     return time_min 
     
@@ -201,18 +233,23 @@ class run_record:
       logging.error( ' No record. Cannot do calculation. ')
       return None
 
-    self._avg_altitude = sum( self._altitude ) / self._num_records
-    self._min_cadence = min( self._cadence )
-    self._avg_cadence = sum( self._cadence ) / self._num_records
-    self._max_cadence = max( self._cadence ) 
-    self._min_heart_rate = min( self._heart_rate )
-    self._avg_heart_rate = sum( self._heart_rate ) / self._num_records
-    self._max_heart_rate = max( self._heart_rate ) 
+    if "cadence" in self._exist_vars:
+      self._min_cadence = min( self._cadence )
+      self._avg_cadence = sum( self._cadence ) / self._num_records
+      self._max_cadence = max( self._cadence ) 
+    if "heart_rate" in self._exist_vars:
+      self._min_heart_rate = min( self._heart_rate )
+      self._avg_heart_rate = sum( self._heart_rate ) / self._num_records
+      self._max_heart_rate = max( self._heart_rate ) 
 
-    self._total_distance = self._distance[ self._num_records - 1] # in meters
-    self._passed_time = self._timestamp[ self._num_records - 1] - self._timestamp[0] 
-    self._avg_speed = self._total_distance / self._passed_time.total_seconds()
-    self._min_speed = 9999.
+    if "distance" in self._exist_vars:
+      self._total_distance = self._distance[ self._num_records - 1] # in meters
+    if "time" in self._exist_vars:
+      self._passed_time = self._timestamp[ self._num_records - 1] - self._timestamp[0] 
+    if "speed" in self._exist_vars:
+      self._avg_speed = self._total_distance / self._passed_time.total_seconds()
+      self._min_speed = 9999.
+
     for ispd in self._speed:
       if ispd < 0.1: continue
       if ispd < self._min_speed: self._min_speed = ispd
@@ -223,12 +260,14 @@ class run_record:
 
     self._altitude_up = 0.
     self._altitude_down = 0.
-    for idx in range( self._num_records ):
-      if idx == 0: continue
-      if self._altitude[ idx - 1 ] < self._altitude[ idx ]:
-        self._altitude_up = self._altitude_up + ( self._altitude[ idx ] - self._altitude[ idx-1 ] )
-      elif self._altitude[ idx - 1 ] > self._altitude[ idx ]:
-        self._altitude_down = self._altitude_down + ( self._altitude[ idx - 1 ] - self._altitude[ idx ] )
+    if "altitude" in self._exist_vars:
+      self._avg_altitude = sum( self._altitude ) / self._num_records
+      for idx in range( self._num_records ):
+        if idx == 0: continue
+        if self._altitude[ idx - 1 ] < self._altitude[ idx ]:
+          self._altitude_up = self._altitude_up + ( self._altitude[ idx ] - self._altitude[ idx-1 ] )
+        elif self._altitude[ idx - 1 ] > self._altitude[ idx ]:
+          self._altitude_down = self._altitude_down + ( self._altitude[ idx - 1 ] - self._altitude[ idx ] )
 
     self._fast1km_time = self._time_of_fastest()
     self._fast1ml_time = self._time_of_fastest( self._mile_in_meter )
@@ -236,7 +275,10 @@ class run_record:
   #############################################
   ############# Public Functions ##############
   #############################################
- 
+
+  def getListMeasures( self ):
+    return self._exist_vars 
+
   def getAverageAltitude( self ):
     return self._avg_altitude
 
