@@ -224,7 +224,7 @@ class run_record:
       if ( dtime < time_min ): time_min = dtime
 
     if( time_min > timedelta(days=2) ):
-      logging.error( ' Running distance shorter than ', dist_set, '! Cannot calculate the minimum time.')
+      logging.error( ' Running distance shorter than set distance: %d! Cannot calculate the minimum time.', dist_set)
 
     return time_min 
     
