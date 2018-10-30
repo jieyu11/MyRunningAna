@@ -7,15 +7,20 @@ import matplotlib.dates as mdates
 import datetime
   
 
-def draw_xyplot(xlist, ylist, xlab, ylab, title, out, leg, legloc = 'upper right', xsize_inch = 10, ysize_inch = 8, plot_type = "Normal"):
+def draw_xyplot(xlist, ylist, xlab, ylab, title, out, leg, legloc = 'upper right', xsize_inch = 10, ysize_inch = 8, plot_type = "Normal",
+                xmin = 999., xmax = 0., ymin = 999., ymax = 0.):
   plt.clf()
   plt.gcf().set_size_inches(xsize_inch, ysize_inch) # default 8., 6.
-  if plot_type == "Scatter":
+  if "Scatter" in plot_type:
     plt.scatter( xlist, ylist, marker='o', s = 200, c='#E3CF57', alpha=0.4) # color= #E3CF57 (banana)
     #,markeredgecolor='b', markerfacecolor='b'
-  elif plot_type == "Normal":
+  elif "Hist" in plot_type:
+    plt.hist(x=xlist, bins='auto', color='#0504aa', alpha=0.5, rwidth=0.8)
+  else:
     plt.plot( xlist, ylist )
-  elif plot_type == "Datetime":
+  if "Datetime" in plot_type:
+    plt.gcf().autofmt_xdate()
+
     #plt.gcf().autofmt_xdate()
     #xdate = [ datetime.strptime(d,'%m/%d/%Y').date() for d in xlist]
     #xdate = [ datetime.datetime.strftime(d,'%m/%d/%Y') for d in xlist]
@@ -23,10 +28,12 @@ def draw_xyplot(xlist, ylist, xlab, ylab, title, out, leg, legloc = 'upper right
 
     #plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m/%d/%Y'))
     #plt.gca().xaxis.set_major_locator(mdates.DayLocator())
-    plt.plot(xlist,ylist)
-    plt.gcf().autofmt_xdate()
 
 
+  if xmin < xmax:
+    plt.xlim( xmin, xmax)
+  if ymin < ymax:
+    plt.ylim( ymin, ymax)
   plt.ylabel( ylab )
   plt.xlabel( xlab )
   if leg is not None:
@@ -107,16 +114,20 @@ class read_sequence:
       else:
         if len( self._MeasuredList ) <= 0:
           self._MeasuredList  = _rrd.getListMeasures()
-        if "distance" in self._MeasuredList:
-          if _rrd.getTotalDistanceKm() > 2.0:
-            self._TotalDistanceMile.append( _rrd.getTotalDistanceMile() )
-            self._TotalDistanceKm.append( _rrd.getTotalDistanceKm() )
-          else:
-            logging.warning( ' Input %s found no distance %.1f lower than 2km.', ffitname, _rrd.getTotalDistanceKm() )
+        selected = True
+        if "distance" not in self._MeasuredList or _rrd.getTotalDistanceKm() < 2.0:
+          selected = False
+        if "speed" not in self._MeasuredList or _rrd.getAverageSpeed() < 0.1:
+          selected = False
+
+        if not selected:
+            logging.warning( ' Input %s found distance %.1f, average speed %.1f. Failed to pass selection. Skip!', ffitname, _rrd.getTotalDistanceKm(), _rrd.getAverageSpeed() )
             continue
-        else:
-          logging.warning( ' Input %s found no distance. Skip! ', ffitname )
-          continue
+
+
+        if "distance" in self._MeasuredList:
+          self._TotalDistanceMile.append( _rrd.getTotalDistanceMile() )
+          self._TotalDistanceKm.append( _rrd.getTotalDistanceKm() )
         if "time" in self._MeasuredList:
           self._TotalTimePassed.append( _rrd.getTotalTimePassed() )
           self._StartTime.append( _rrd.getStartTime() )
@@ -217,14 +228,30 @@ class read_sequence:
     firsttime = self._StartTime[0]
     lasttime = self._StartTime[ self._number_runs - 1 ]
     outtime_tag = firsttime.strftime('%Y%m%d_') + lasttime.strftime('%Y%m%d')
- 
+
+
+    if "distance" in self._MeasuredList:
+      draw_xyplot( self._TotalDistanceKm, None, xlab = "Distance per Run (Km)", ylab = "Number of Runs", title = "",
+        out = outdir+"/"+outtime_tag+"_distanceKm.pdf", leg = None, plot_type = "Hist")
+      draw_xyplot( self._TotalDistanceMile, None, xlab = "Distance per Run (Mile)", ylab = "Number of Runs", title = "",
+        out = outdir+"/"+outtime_tag+"_distanceMile.pdf", leg = None, plot_type = "Hist")
+
+    if "distance" in self._MeasuredList and "speed" in self._MeasuredList:
+      draw_xyplot( self._TotalDistanceKm, self._fltAveragePaceKm, xlab = "Distance per Run (Km)", ylab = "Pace (minutes per Km)", title = "",
+        out = outdir+"/"+outtime_tag+"_distanceKm.pdf", leg = None, plot_type = "Scatter")
+
+    if "heart_rate" in self._MeasuredList:
+      draw_xyplot( self._AverageHeartRate, None,
+        xlab = "Heart Rate (BPM)", ylab = "Number of Runs", title = "",
+        out = outdir+"/"+outtime_tag+"_heartrate.pdf", leg = None, plot_type = "Hist", ymin = 100, ymax = 200)
+  
     # 
     # Plot altitude vs time
     # 
     if "altitude" in self._MeasuredList and "time" in self._MeasuredList:
       draw_xyplot( self._StartTime, self._AssendMeters, 
         xlab = "running date", ylab = "Ascend per Run (meters)", title = "",
-        out = outdir+"/"+outtime_tag+"_altitude_v_date.pdf", leg = None, plot_type = "Datetime")
+        out = outdir+"/"+outtime_tag+"_altitude_v_date.pdf", leg = None, plot_type = "Datetime_Scatter")
   
     # 
     # Plot pace vs time
@@ -234,15 +261,19 @@ class read_sequence:
       #avgPaceKmFloat = [ pc.total_seconds() / 60.0 for pc in self._AveragePaceKm ]
       draw_xyplot( self._StartTime, self._fltAveragePaceKm,
         xlab = "running date", ylab = "Pace (minutes per Km)", title = "",
-        out = outdir+"/"+outtime_tag+"_pace_v_date.pdf", leg = None, plot_type = "Datetime")
-  
+        out = outdir+"/"+outtime_tag+"_pace_v_date.pdf", leg = None, plot_type = "Datetime_Scatter")
+      draw_xyplot( self._fltAveragePaceKm, None, xlab = "Pace (minutes per Km)", ylab = "Number of Runs", title = "",
+        out = outdir+"/"+outtime_tag+"_pace.pdf", leg = None, plot_type = "Hist")
+   
     # 
     # Plot heart rate vs time
     # 
     if "heart_rate" in self._MeasuredList and "time" in self._MeasuredList:
       draw_xyplot( self._StartTime, self._AverageHeartRate, 
         xlab = "running date", ylab = "Heart Rate (BPM)", title = "",
-        out = outdir+"/"+outtime_tag+"_heartrate_v_date.pdf", leg = None, plot_type = "Datetime")
+        out = outdir+"/"+outtime_tag+"_heartrate_v_date.pdf", leg = None, plot_type = "Datetime_Scatter", ymin = 100, ymax = 200)
+      draw_xyplot( self._AverageHeartRate, None, xlab = "Average Heart Rate (RPM) per Run", ylab = "Number of Runs", title = "",
+        out = outdir+"/"+outtime_tag+"_heartrate.pdf", leg = None, plot_type = "Hist", xmin = 100, xmax = 200)
   
     # 
     # Plot pace vs heart_rate
@@ -250,7 +281,7 @@ class read_sequence:
     if "heart_rate" in self._MeasuredList and "speed" in self._MeasuredList:
       draw_xyplot( self._AverageHeartRate, self._fltAveragePaceKm,
         xlab = "Heart Rate (BPM)", ylab = "Pace (minutes per Km)", title = "",
-        out = outdir+"/"+outtime_tag+"_pace_v_heartrate.pdf", leg = None, plot_type = "Scatter")
+        out = outdir+"/"+outtime_tag+"_pace_v_heartrate.pdf", leg = None, plot_type = "Scatter", xmin = 100, xmax = 200)
   
     # 
     # Plot pace vs cadence
@@ -258,7 +289,7 @@ class read_sequence:
     if "cadence" in self._MeasuredList and "speed" in self._MeasuredList:
       draw_xyplot( self._AverageCadence, self._fltAveragePaceKm,
         xlab = "Cadence (RPM)", ylab = "Pace (minutes per Km)", title = "",
-        out = outdir+"/"+outtime_tag+"_pace_v_cadence.pdf", leg = None, plot_type = "Scatter")
+        out = outdir+"/"+outtime_tag+"_pace_v_cadence.pdf", leg = None, plot_type = "Scatter", xmin = 70, xmax = 110)
   
 def main():
   if len(sys.argv) < 2:
