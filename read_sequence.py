@@ -238,7 +238,7 @@ class read_sequence:
 
     if "distance" in self._MeasuredList and "speed" in self._MeasuredList:
       draw_xyplot( self._TotalDistanceKm, self._fltAveragePaceKm, xlab = "Distance per Run (Km)", ylab = "Pace (minutes per Km)", title = "",
-        out = outdir+"/"+outtime_tag+"_distanceKm.pdf", leg = None, plot_type = "Scatter")
+        out = outdir+"/"+outtime_tag+"_distanceKm_vs_pace.pdf", leg = None, plot_type = "Scatter")
 
     if "heart_rate" in self._MeasuredList:
       draw_xyplot( self._AverageHeartRate, None,
@@ -289,7 +289,7 @@ class read_sequence:
     if "cadence" in self._MeasuredList and "speed" in self._MeasuredList:
       draw_xyplot( self._AverageCadence, self._fltAveragePaceKm,
         xlab = "Cadence (RPM)", ylab = "Pace (minutes per Km)", title = "",
-        out = outdir+"/"+outtime_tag+"_pace_v_cadence.pdf", leg = None, plot_type = "Scatter", xmin = 70, xmax = 110)
+        out = outdir+"/"+outtime_tag+"_pace_v_cadence.pdf", leg = None, plot_type = "Scatter", xmin = 75, xmax = 95)
   
 def main():
   if len(sys.argv) < 2:
