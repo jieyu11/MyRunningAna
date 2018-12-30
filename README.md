@@ -32,5 +32,5 @@
   - python2.7 read_fit.py data/test.fit OUTDIR
 
 * Run Analysis of multiple runs in a folder InputDIR or a input file with each line the (.fit) input name.
-  - python2.7 read_sequence.py data OUTDIR
-  - python2.7 read_sequence.py inputs.txt OUTDIR
+  - python2.7 anal.py data OUTDIR
+  - python2.7 anal.py inputs.txt OUTDIR
