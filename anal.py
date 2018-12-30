@@ -19,9 +19,12 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import datetime
   
+#import seaborn as sns; sns.set(color_codes=True)
+import numpy as np
+
 
 def draw_xyplot(xlist, ylist, xlab, ylab, title, out, leg, legloc = 'upper right', xsize_inch = 10, ysize_inch = 8, plot_type = "Normal",
-                xmin = 999., xmax = 0., ymin = 999., ymax = 0.):
+                xmin = 999., xmax = 0., ymin = 999., ymax = 0., dofit=False):
   '''Draw plots with data from x-axis and y-axis.
 
     Parameters:
@@ -75,6 +78,14 @@ def draw_xyplot(xlist, ylist, xlab, ylab, title, out, leg, legloc = 'upper right
     plt.legend( leg, loc=legloc)
   plt.title( title )
   #plt.show()
+
+  if dofit and "Hist" not in plot_type:
+    # Add correlation line
+    axes = plt.gca()
+    m, b = np.polyfit(xlist, ylist, 1)
+    X_plot = np.linspace(axes.get_xlim()[0],axes.get_xlim()[1],100)
+    plt.plot(X_plot, m*X_plot + b, '-')
+
   plt.savefig( out )
 
 def write_summary(seq, outdir):
@@ -147,7 +158,7 @@ def draw(seq, outdir):
 
   if "distance" in seq.getMeasuredList() and "speed" in seq.getMeasuredList():
     draw_xyplot( seq.getTotalDistanceKm(), seq.getfltAveragePaceKm(), xlab = "Distance per Run (Km)", ylab = "Pace (minutes per Km)", title = "",
-      out = outdir+"/"+outtime_tag+"_distanceKm_vs_pace.pdf", leg = None, plot_type = "Scatter")
+      out = outdir+"/"+outtime_tag+"_distanceKm_vs_pace.pdf", leg = None, plot_type = "Scatter", dofit = True)
 
   if "heart_rate" in seq.getMeasuredList():
     draw_xyplot( seq.getAverageHeartRate(), None,
@@ -190,7 +201,7 @@ def draw(seq, outdir):
   if "heart_rate" in seq.getMeasuredList() and "speed" in seq.getMeasuredList():
     draw_xyplot( seq.getAverageHeartRate(), seq.getfltAveragePaceKm(),
       xlab = "Heart Rate (BPM)", ylab = "Pace (minutes per Km)", title = "",
-      out = outdir+"/"+outtime_tag+"_pace_v_heartrate.pdf", leg = None, plot_type = "Scatter", xmin = 100, xmax = 200)
+      out = outdir+"/"+outtime_tag+"_pace_v_heartrate.pdf", leg = None, plot_type = "Scatter", xmin = 100, xmax = 200, dofit = True)
 
   # 
   # Plot pace vs cadence
@@ -198,7 +209,7 @@ def draw(seq, outdir):
   if "cadence" in seq.getMeasuredList() and "speed" in seq.getMeasuredList():
     draw_xyplot( seq.getAverageCadence(), seq.getfltAveragePaceKm(),
       xlab = "Cadence (RPM)", ylab = "Pace (minutes per Km)", title = "",
-      out = outdir+"/"+outtime_tag+"_pace_v_cadence.pdf", leg = None, plot_type = "Scatter", xmin = 75, xmax = 95)
+      out = outdir+"/"+outtime_tag+"_pace_v_cadence.pdf", leg = None, plot_type = "Scatter", xmin = 75, xmax = 95, dofit = True)
   
 def main():
   '''
