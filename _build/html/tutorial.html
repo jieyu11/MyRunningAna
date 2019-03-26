@@ -1,0 +1,182 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>How To: A quick tutorial &#8212; myStravaRun 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Project Summary" href="project.html" />
+    <link rel="prev" title="Welcome to myStravaRun’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="how-to-a-quick-tutorial">
+<h1>How To: A quick tutorial<a class="headerlink" href="#how-to-a-quick-tutorial" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="install-fitparse">
+<h2>Install fitparse<a class="headerlink" href="#install-fitparse" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Check the fitparse in python: <a class="reference external" href="https://github.com/dtcooper/python-fitparse">fitparse</a>.</li>
+<li>Check also below as reference: <a class="reference external" href="http://dtcooper.github.io/python-fitparse/">fitparse reference</a>.</li>
+<li>Do: pip install fitparse</li>
+</ol>
+</div></blockquote>
+</div>
+<div class="section" id="bulk-export-of-data-from-strava">
+<h2>Bulk Export of data from strava<a class="headerlink" href="#bulk-export-of-data-from-strava" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li>As of May 25th, 2018, Strava provides the option to export an archive of your account. Find here: <a class="reference external" href="https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export">strave data bulk export</a>.<ol class="arabic">
+<li>Log into the account on Strava.com that you wish to delete.</li>
+<li>Hover over your name in the upper right-hand corner of the Strava page. Choose “Settings,” then find the “My Account” tab from the menu listed on the Left.</li>
+<li>Select “Get Started” under “Download or Delete Your Account.”</li>
+<li>Select “Request your archive” on the next page. You will receive an email with a link to download your data (this may take a few hours.) For this reason, it’s important that you have access to the email account attached to your Strava profile.</li>
+</ol>
+</li>
+<li>Your data archive will contain the following<ol class="arabic">
+<li>A zipped folder with your activities in their original file format. (.fit as from garmin?)</li>
+<li>A folder with all the photos you’ve uploaded to Strava.</li>
+<li>A folder with routes you’ve created in GPX format.</li>
+<li>CSV files that include the following<ul>
+<li>All the posts and comments you’ve posted.</li>
+<li>Contacts you’ve synced to Strava.</li>
+<li>Clubs and events you’ve created</li>
+<li>The information in your profile including your gear and goals.</li>
+<li>Actions you’ve performed including kudos given and routes or segments you’ve starred.</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="run-analysis-of-one-single-run">
+<h2>Run Analysis of one single run<a class="headerlink" href="#run-analysis-of-one-single-run" title="Permalink to this headline">¶</a></h2>
+<p>Single run analysis is simple:</p>
+<blockquote>
+<div><ul class="simple">
+<li>python2.7 read_fit.py data/test.fit OUTDIR</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="run-analysis-of-multiple-runs">
+<h2>Run Analysis of multiple runs<a class="headerlink" href="#run-analysis-of-multiple-runs" title="Permalink to this headline">¶</a></h2>
+<p>The list of runs can be put in a folder InputDIR or a input file with each line the (.fit) input name.</p>
+<blockquote>
+<div><ul class="simple">
+<li>python2.7 read_sequence.py InputDIR OUTDIR</li>
+<li>python2.7 read_sequence.py inputs.txt OUTDIR</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/r2.png" alt="Logo"/>
+            </a></p>
+<h1 class="logo"><a href="index.html">myStravaRun</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">How To: A quick tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#install-fitparse">Install fitparse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bulk-export-of-data-from-strava">Bulk Export of data from strava</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-analysis-of-one-single-run">Run Analysis of one single run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-analysis-of-multiple-runs">Run Analysis of multiple runs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="project.html">Project Summary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code0.html">Modules: run_record</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code1.html">Modules: read_fit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code2.html">Modules: read_sequence</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to myStravaRun’s documentation!</a></li>
+      <li>Next: <a href="project.html" title="next chapter">Project Summary</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Jie Yu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/tutorial.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

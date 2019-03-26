@@ -1,0 +1,4 @@
+git clone https://github.com/jieyu11/MyRunningAna.git
+
+scp -r yuj@lxplus.cern.ch:~/www/projects/MyStravaRuns doc
+

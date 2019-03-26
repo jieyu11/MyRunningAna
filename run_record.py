@@ -1,43 +1,56 @@
-## @package run_record
-#  @author Jie Yu (jie.yu@cern.ch)
-#  @date October 1, 2018
-#
-#  @brief Read one raw garmin or strava fit file into a run record. \par
-#
-#  @detail
-#  A running record raw data is kept in a .fit file, which can be downloaded from one's personal garmin/strava page.
-#    This code makes use of the input .fit file and extract / calculate useful information about the run. Such include
-#    total distance, total time used, average pace, etc. Further on, one record can be used as one data point in 
-#    a series of runs. \par
-#
+'''Read run record.
 
-import logging                 # logging:             https://docs.python.org/3.6/howto/logging.html
-import sys                     # system specific:     https://docs.python.org/3.6/library/sys.html
-import time                    # Time access:         https://docs.python.org/3.6/library/time.html
+  :Author: Jie Yu <jie.yu@cern.ch>
+  :Date:   |today|
+  :Synopsis: Reading Strava/Garmin Run Record.
+
+  :Details: A running record raw data is kept in a .fit file, which can be downloaded from one's personal garmin or strava page.
+    This code makes use of the input .fit file and extract or calculate useful information about the run. Such include
+    total distance, total time used, average pace, etc. Further on, one record can be used as one data point in 
+    a series of runs.
+
+
+'''
+
+import logging                            # logging:             https://docs.python.org/3.6/howto/logging.html
+import sys                                # system specific:     https://docs.python.org/3.6/library/sys.html
+import time                               # Time access:         https://docs.python.org/3.6/library/time.html
 from datetime import datetime, timedelta  # Date and time types: https://docs.python.org/3.6/library/datetime.html
 from fitparse import FitFile
  
+#.. py:class:: run_record
 class run_record:
   '''Documentation for class run_record. 
 
-    Purpose: read running record of garmin.fit file and do the simple analysis to provide results about the run.
-  
+    Purpose: 
+       Read running record of garmin.fit file and do the simple analysis to provide results about the run.
+
+    Parameters:
+       :ffitname:  input file name.fit
+       :hours_dif: difference of hours compared to UTC, US Central is 6 hours later, so set to -6
+   
     Attributes:
-        [ variable ]       [ value ]              [ type ]                    [ unit ]
-      -- altitude:           303.0                (<type 'float'>)             m 
-      -- cadence:            0                    (<type 'int'>  )             rpm 
-      -- distance:           0.0                  (<type 'float'>)             m 
-      -- enhanced_altitude:  303.0                (<type 'float'>)             m 
-      -- enhanced_speed:     0.0                  (<type 'float'>)             m/s 
-      -- fractional_cadence: 0.0                  (<type 'float'>)             rpm 
-      -- heart_rate:         103                  (<type 'int'>  )             bpm 
-      -- position_lat:       501744197            (<type 'int'>  )             semicircles 
-      -- position_long:      -1116949763          (<type 'int'>  )             semicircles 
-      -- speed:              0.0                  (<type 'float'>)             m/s 
-      -- timestamp:          2016-11-24 00:07:12  (<type 'datetime.datetime'>) 
-      -- unknown_87:         0                    (<type 'int'>) 
-      -- unknown_88:         300                  (<type 'int'>) 
-  
+
+      ====================== ==================== ============================ ============
+          variable              value                  type                         unit  
+      ====================== ==================== ============================ ============
+        altitude             303.0                (<type 'float'>)              m 
+        cadence              0                    (<type 'int'>  )              rpm 
+        distance             0.0                  (<type 'float'>)              m 
+        enhanced_altitude    303.0                (<type 'float'>)              m 
+        enhanced_speed       0.0                  (<type 'float'>)              m/s 
+        fractional_cadence   0.0                  (<type 'float'>)              rpm 
+        heart_rate           103                  (<type 'int'>  )              bpm 
+        position_lat         501744197            (<type 'int'>  )              semicircles 
+        position_long        -1116949763          (<type 'int'>  )              semicircles 
+        speed                0.0                  (<type 'float'>)              m/s 
+        timestamp            2016-11-24 00 07 12  (<type 'datetime.datetime'>)  
+        unknown_87           0                    (<type 'int'>)              
+        unknown_88           300                  (<type 'int'>)               
+      ====================== ==================== ============================ ============
+
+     .. na: http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#simple-tables
+
     Process:
       1. read garmin.fit file by calling the class rcd = run_record( "garmin.fit" ) 
       2. keep the data of _speed_, _heart_rate_, etc, into vectors
@@ -46,43 +59,46 @@ class run_record:
       5. show the results by calling 
   
     Functions:
-      -- getListMeasures():       return the list of measured variables: altitude, cadence, distance, etc.
-      -- getAverageAltitude():    return average altitude in meters
-      -- getAscendMeters():       return the number of meters ascended
-      -- getDescendMeters():      return the number of meters descended
-      -- getFastestKmTime():      return the time of fastest 1Km in <timedelta>
-      -- getMinimumSpeed():       return the slowest speed in m/s
-      -- getMaximumSpeed():       return the fastest speed in m/s
-      -- getAverageSpeed():       return the average speed in m/s
-      -- getMinimumPaceKm():      return the slowest pace in <timedelta> per Km
-      -- getMaximumPaceKm():      return the fastest pace in <timedelta> per Km
-      -- getAveragePaceKm():      return the average pace in <timedelta> per Km
-      -- getMinimumPaceMile():    return the slowest pace in <timedelta> per mile
-      -- getMaximumPaceMile():    return the fastest pace in <timedelta> per mile
-      -- getAveragePaceMile():    return the average pace in <timedelta> per mile
-      -- getMinimumCadence():     return the minimum cadence in rpm
-      -- getMaximumCadence():     return the maximum cadence in rpm
-      -- getAverageCadence():     return the average cadence in rpm
-      -- getMinimumHeartRate():   return the minimum heart rate in bpm 
-      -- getMaximumHeartRate():   return the maximum heart rate in bpm 
-      -- getAverageHeartRate():   return the average heart rate in bpm 
-      -- getTotalDistanceMile():  return the total distance in mile
-      -- getTotalDistanceKm():    return the total distance in Km
-      -- getTotalDistanceMeter(): return the total distance in meter
-      -- getTotalTimePassed():    return the total time used 
-      -- getTotalTimeMoving():    return the total time used while moving
-      -- getStartTime():          return the starting time point in <datetime>
-      -- getEndTime():            return the stopping time point in <datetime>
-      -- getAltitudeList():       return the list of altitude data in meter
-      -- getCadenceList():        return the list of cadence data in rpm
-      -- getDistanceList():       return the list of distance data in meter
-      -- getHeartRateList():      return the list of heart rate data in bpm
-      -- getSpeedList():          return the list of speed data in m/s
-      -- getIsMovingList():       return the list of boolean stating if moving or not
-      -- getPaceKmList():         return the list of the pace in minutes per km
-      -- getDateTimeList():       return the list of time stamps in <datetime>
-      -- getElapsedTimeList():    return the list of the elapsed time in <timedelta>
-      -- getElapsedMinutesList(): return the list of the elapsed minutes in <float> minutes
+
+      ========================= ==========================================================================
+        function                 note
+      ========================= ==========================================================================
+        getListMeasures()        return the list of measured variables  altitude, cadence, distance, etc.
+        getAverageAltitude()     return average altitude in meters
+        getAscendMeters()        return the number of meters assended
+        getDescendMeters()       return the number of meters desended
+        getFastestKmTime()       return the time of fastest 1Km in <timedelta>
+        getMinimumSpeed()        return the slowest speed in m/s
+        getMaximumSpeed()        return the fastest speed in m/s
+        getAverageSpeed()        return the average speed in m/s
+        getMinimumPaceKm()       return the slowest pace in <timedelta> per Km
+        getMaximumPaceKm()       return the fastest pace in <timedelta> per Km
+        getAveragePaceKm()       return the average pace in <timedelta> per Km
+        getMinimumPaceMile()     return the slowest pace in <timedelta> per mile
+        getMaximumPaceMile()     return the fastest pace in <timedelta> per mile
+        getAveragePaceMile()     return the average pace in <timedelta> per mile
+        getMinimumCadence()      return the minimum cadence in rpm
+        getMaximumCadence()      return the maximum cadence in rpm
+        getAverageCadence()      return the average cadence in rpm
+        getMinimumHeartRate()    return the minimum heart rate in bpm 
+        getMaximumHeartRate()    return the maximum heart rate in bpm 
+        getAverageHeartRate()    return the average heart rate in bpm 
+        getTotalDistanceMile()   return the total distance in mile
+        getTotalDistanceKm()     return the total distance in Km
+        getTotalDistanceMeter()  return the total distance in meter
+        getTotalTimePassed()     return the total time used 
+        getStartTime()           return the starting time point in <datetime>
+        getEndTime()             return the stopping time point in <datetime>
+        getAltitudeList()        return the list of altitude data in meter
+        getCadenceList()         return the list of cadence data in rpm
+        getDistanceList()        return the list of distance data in meter
+        getHeartRateList()       return the list of heart rate data in bpm
+        getSpeedList()           return the list of speed data in m/s
+        getPaceKmList()          return the list of the pace in minutes per km
+        getDateTimeList()        return the list of time stamps in <datetime>
+        getElapsedTimeList()     return the list of the elapsed time in <timedelta>
+        getElapsedMinutesList()  return the list of the elapsed minutes in <float> minutes
+      ========================= ==========================================================================
   '''
 
   _mile_in_meter = 1609.34 # number of meters in a mile
@@ -91,8 +107,8 @@ class run_record:
     '''Constructor of run_record class.
 
        Parameters:
-        -- ffitname: input file name.fit
-        -- hours_dif: difference of hours compared to UTC, US Central is 6 hours later, so set to -6
+        :param: ffitname input file name.fit
+        :param: hours_dif difference of hours compared to UTC, US Central is 6 hours later, so set to -6
     '''
 
     self._exist_vars = [] # existing variable in the data from input file: altitude, etc
@@ -101,7 +117,6 @@ class run_record:
     self._distance = [] # <float> meter
     self._heart_rate = [] # <int> bpm
     self._speed = [] # <float> m/s
-    self._ismoving = [] # true: speed > 1.6 or flase
     self._pacekm = [] # <float> minutes per km 
     self._timestamp = [] # <'datetime.datetime'> 
     self._elapsedtime = [] # <timedelta>
@@ -120,13 +135,11 @@ class run_record:
     self._avg_speed = 0.
     self._max_speed = 0.
     self._passed_time = timedelta(0)
-    self._moving_time = timedelta(0)
     self._fast1km_time = timedelta(0) # 1 km
     self._fast1ml_time = timedelta(0) # 1 mile
     self._total_distance = 0.;
 
     self._num_records = 0 # number of data points
-    self._num_records_moving = 0 # number of data points
 
     #
     # private functions called for calculation
@@ -170,17 +183,16 @@ class run_record:
     self._num_records = 0
     for record in fitfile.get_messages('record'):
 
-      skip = True
+      skip = False
       for record_data in record:
         #
-        # "speed" not found or slower than 0.2 m/s skip!
-        # 0.2 m / s == 0.72 Km / hour
+        # 0.2 m / s == 0.72 Km / hour, walking or running cannot be that slow!!!!
         #
-        if record_data.name == "speed" and record_data.value > 0.2:
-          skip = False
+        if record_data.name == "speed" and record_data.value < 0.2:
+          skip = True
           break
-      if skip: continue
 
+      if skip: continue
       self._num_records = self._num_records + 1
 
       # Go through all the data entries in this record
@@ -199,16 +211,8 @@ class run_record:
           self._distance.append( record_data.value ) #<float> meter
         elif record_data.name == "heart_rate":
           self._heart_rate.append( record_data.value ) #<int> bpm
-          #print 'Current length heart rate %d ' %len(self._heart_rate)
         elif record_data.name == "speed":
           self._speed.append( record_data.value ) #<float> meter/second
-          #print 'Current length speed %d ' %len(self._speed)
-          # is moving set to true if speed is > 1.6 meter/second
-          if record_data.value > 1.6: 
-            self._ismoving.append( True )
-            self._num_records_moving = self._num_records_moving + 1
-          else:
-            self._ismoving.append( False )
           pace_dt = self._calculatePaceFromSpeed( record_data.value )
           if pace_dt.total_seconds() < 1:
             self._pacekm.append( 15. ) # 15 minutes per Km, impossibly slow!
@@ -228,18 +232,13 @@ class run_record:
           continue
 
     if len( self._altitude   ) == self._num_records : self._exist_vars.append( "altitude"   )
-    else : print ' Number of records %d ' % self._num_records, ' != number of altitude data %d ' % len( self._altitude)
     if len( self._cadence    ) == self._num_records : self._exist_vars.append( "cadence"    )
-    else : print ' Number of records %d ' % self._num_records, ' != number of cadence data %d ' % len( self._cadence)
     if len( self._distance   ) == self._num_records : self._exist_vars.append( "distance"   )
-    else : print ' Number of records %d ' % self._num_records, ' != number of distance data %d ' % len( self._distance)
     if len( self._heart_rate ) == self._num_records : self._exist_vars.append( "heart_rate" )
-    else : print ' Number of records %d ' % self._num_records, ' != number of heart_rate data %d ' % len( self._heart_rate)
     if len( self._speed      ) == self._num_records : self._exist_vars.append( "speed"      )
-    else : print ' Number of records %d ' % self._num_records, ' != number of speed data %d ' % len( self._speed)
     if len( self._timestamp  ) == self._num_records : self._exist_vars.append( "time"  )
-    else : print ' Number of records %d ' % self._num_records, ' != number of timestamp data %d ' % len( self._timestamp)
 
+      
     if self._num_records <= 0:
       logging.error( ' Input ' + ffitname + ' has no record installed. Check! ')
     else:
@@ -284,67 +283,30 @@ class run_record:
       logging.error( ' No record. Cannot do calculation. ')
       return None
 
-    ##############
-    # "distance" #
-    ##############
+    if "cadence" in self._exist_vars:
+      self._min_cadence = min( self._cadence )
+      self._avg_cadence = sum( self._cadence ) / self._num_records
+      self._max_cadence = max( self._cadence ) 
+    if "heart_rate" in self._exist_vars:
+      self._min_heart_rate = min( self._heart_rate )
+      self._avg_heart_rate = sum( self._heart_rate ) / self._num_records
+      self._max_heart_rate = max( self._heart_rate ) 
+
     if "distance" in self._exist_vars:
       self._total_distance = self._distance[ self._num_records - 1] # in meters
-
-    ##########
-    # "time" #
-    ##########
     if "time" in self._exist_vars:
       self._passed_time = self._timestamp[ self._num_records - 1] - self._timestamp[0] 
-
-    ###########
-    # "speed" #
-    ###########
     if "speed" in self._exist_vars:
-      #
-      # use index to get the time-stamps, then calculate the moving time
-      #
+      self._avg_speed = self._total_distance / self._passed_time.total_seconds()
       self._min_speed = 9999.
-      for idx, ismove in enumerate( self._ismoving ):
-        # calculate the moving time.
-        # set the minimum moving speed to be 1.6 meter / second ~ 10 minutes / Km
-        if idx > 0 and ismove: 
-          self._moving_time = self._moving_time + ( self._timestamp[idx] - self._timestamp[idx-1] )
-          if self._speed[ idx ] < self._min_speed: self._min_speed = self._speed[ idx ]
-        
-      self._avg_speed = 0.
-      if self._moving_time.total_seconds() > 0:
-        self._avg_speed = self._total_distance / self._moving_time.total_seconds()
 
+    for ispd in self._speed:
+      if ispd < 0.1: continue
+      if ispd < self._min_speed: self._min_speed = ispd
     if self._min_speed > 9998:
       logging.error( ' No minimum speed found : ', self._min_speed, ' m/s.' )
     self._max_speed = max( self._speed ) 
 
-    #############
-    # "cadence" #
-    #############
-    print ' length ismoving %d ' % len( self._ismoving )
-    print ' length cadence %d ' % len( self._cadence )
-    print ' length heart %d ' % len( self._heart_rate )
-    if "cadence" in self._exist_vars:
-      _cadence_moving = [ x for idx,x in enumerate( self._cadence ) if self._ismoving[ idx ] ]
-      self._min_cadence = 0
-      self._avg_cadence = 0
-      if len(_cadence_moving) > 0:
-        self._min_cadence = min( _cadence_moving )
-        self._avg_cadence = sum( _cadence_moving ) / self._num_records_moving
-      self._max_cadence = max( self._cadence ) 
-
-    ################
-    # "heart rate" #
-    ################
-    if "heart_rate" in self._exist_vars:
-      _heart_rate_moving = [ x for idx,x in enumerate( self._heart_rate ) if self._ismoving[ idx ] ]
-      self._min_heart_rate = 0
-      self._avg_heart_rate = 0
-      if len(_heart_rate_moving) > 0:
-        self._min_heart_rate = min( _heart_rate_moving )
-        self._avg_heart_rate = sum( _heart_rate_moving ) / self._num_records_moving
-      self._max_heart_rate = max( self._heart_rate ) 
 
     self._altitude_up = 0.
     self._altitude_down = 0.
@@ -386,7 +348,7 @@ class run_record:
     return self._altitude_down
 
   def getFastestKmTime( self ):
-    '''Get the time in timedelta for the fastest 1K meters during the run.
+    '''Get the time for the fastest 1K meters during the run.
     '''
     return self._fast1km_time
 
@@ -486,11 +448,6 @@ class run_record:
     '''
     return self._passed_time
 
-  def getTotalTimeMoving( self ):
-    '''Get the total time while moving in datetime.timedelta.
-    '''
-    return self._moving_time
-
   def getStartTime( self ):
     '''Get the starting time in datetime.datetime.
     '''
@@ -520,11 +477,6 @@ class run_record:
     '''Get the list of "heart_rate" records.
     '''
     return self._heart_rate
-
-  def getIsMovingList( self ):
-    '''Get the list of isMoving records. True if it is > threshold of speed.
-    '''
-    return self._ismoving
 
   def getSpeedList( self ):
     '''Get the list of "speed" records.

@@ -1,38 +1,102 @@
-## @package read_sequence
-#  @author Jie Yu (jie.yu@cern.ch)
-#  @date October 1, 2018
-#
-#  @brief Read a series of raw garmin or strava fit files and make outputs of interest. \par
-#
-#  @detail
-#    This code makes use of a list of input .fit files and extract / calculate useful information about the runs. 
-#    These output variables include total distance, average mileage per run, average cadence per run, average 
-#    heart rate per run, etc. These help to see a patten in the list of runs during a longer period of time.
-#
+'''Analyze a series of records.
+
+  :Author: Jie Yu <jie.yu@cern.ch>
+  :Date:   |today|
+  :Synopsis: Do analysis on a series of records and make results.
+  :Details:  This code makes use of a list of input .fit files and extract / calculate useful information about the runs. 
+             These output variables include total distance, average mileage per run, average cadence per run, average 
+             heart rate per run, etc. These help to see a patten in the list of runs during a longer period of time.
+
+'''
 
 import os
 import logging
 import sys                    
 from run_record import *
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import datetime
   
+
+def draw_xyplot(xlist, ylist, xlab, ylab, title, out, leg, legloc = 'upper right', xsize_inch = 10, ysize_inch = 8, plot_type = "Normal",
+                xmin = 999., xmax = 0., ymin = 999., ymax = 0.):
+  '''Draw plots with data from x-axis and y-axis.
+
+    Parameters:
+
+    =========== =============================
+     arg         note
+    =========== =============================
+     xlist       x-axis data in list<>.
+     ylist       y-ayis data in list<>.
+     xlab        x-axis label.
+     ylab        y-ayis label.
+     title       title of the plot.
+     out         output name of the plot.
+     leg         instance of a legend object.
+     legloc      location of the legend.
+     xsize_inch  number of inches in x-axis.
+     ysize_inch  number of inches in y-ayis.
+     plot_type   "Normal":  plot()
+                 "Hist":    hist()
+                 "Scatter": scatter()
+     xmin        minimum of x-axis
+     xmax        maximum of x-axis
+     ymin        minimum of y-axis
+     ymax        maximum of y-axis
+    =========== =============================
+
+  '''
+
+  plt.clf()
+  plt.gcf().set_size_inches(xsize_inch, ysize_inch) # default 8., 6.
+  if "Scatter" in plot_type:
+    plt.scatter( xlist, ylist, marker='o', s = 200, c='#E3CF57', alpha=0.4) # color= #E3CF57 (banana)
+    #,markeredgecolor='b', markerfacecolor='b'
+  elif "Hist" in plot_type:
+    plt.hist(x=xlist, bins='auto', color='#0504aa', alpha=0.5, rwidth=0.8)
+  else:
+    plt.plot( xlist, ylist )
+  if "Datetime" in plot_type:
+    plt.gcf().autofmt_xdate()
+
+    #plt.gcf().autofmt_xdate()
+    #xdate = [ datetime.strptime(d,'%m/%d/%Y').date() for d in xlist]
+    #xdate = [ datetime.datetime.strftime(d,'%m/%d/%Y') for d in xlist]
+    #plt.plot( xdate, ylist )
+
+    #plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%m/%d/%Y'))
+    #plt.gca().xaxis.set_major_locator(mdates.DayLocator())
+
+
+  if xmin < xmax:
+    plt.xlim( xmin, xmax)
+  if ymin < ymax:
+    plt.ylim( ymin, ymax)
+  plt.ylabel( ylab )
+  plt.xlabel( xlab )
+  if leg is not None:
+    plt.legend( leg, loc=legloc)
+  plt.title( title )
+  #plt.show()
+  plt.savefig( out )
+ 
+
 class read_sequence:
   '''Document for class read_sequence
 
-    Purpose: read a list of files of *.fit and calculate a few fun properties including:
-      * The average pace during each run
-      * The distance during each run
-      * The average heart-rate during each run
-      * The average cadence during each run
+    Purpose: read a list of files of *.fit and make a summary and a few plots of interest.
   '''
 
   def __init__(self, fit_input_name ):
     '''Constructor of class read_sequence.
-      Parameter fit_input_name
+
+      Parameter:
+        fit_input_name: text file contains list of input files.
     '''
+
     self._TheRuns           = [ ]
     self._TotalTimePassed   = [ ] 
-    self._TotalTimeMoving   = [ ] 
     self._StartTime         = [ ]
     self._EndTime           = [ ]
     self._AverageAltitude   = [ ]
@@ -112,7 +176,6 @@ class read_sequence:
           self._TotalDistanceKm.append( _rrd.getTotalDistanceKm() )
         if "time" in self._MeasuredList:
           self._TotalTimePassed.append( _rrd.getTotalTimePassed() )
-          self._TotalTimeMoving.append( _rrd.getTotalTimeMoving() )
           self._StartTime.append( _rrd.getStartTime() )
           self._EndTime.append( _rrd.getEndTime() )
         if "altitude" in self._MeasuredList:
@@ -149,142 +212,173 @@ class read_sequence:
     logging.info( ' Number of runs loaded  ' + ffitname + ' has no record installed. Check! ')
    
   def size(self):
+    '''Size of the input: number of runs read.
+    '''
     return self._number_runs
 
-  def getTheRuns(self):
-    ''' Return the list of instances for each run_record '''
-    return self._TheRuns           
-
-  def getMeasuredList(self):
-    ''' Return the list of measured variables: 
-        altitude, cadence, distance, heart_rate, speed, time  
+  def write_summary(self, outdir ):
+    '''Write out summary out of all runs.
     '''
-    return self._MeasuredList
 
-  def getTotalTimePassed(self):
-    ''' Return the list of total time passed for each run '''
-    return self._TotalTimePassed    
+    if self._number_runs <= 1:
+      logging.error( ' Number of runs <= 1. Return! ')
+      return None
+  
+    statime = self._StartTime[0]
+    endtime = self._StartTime[ self._number_runs - 1 ]
 
-  def getTotalTimeMoving(self):
-    ''' Return the list of total time while moving for each run '''
-    return self._TotalTimeMoving
+    f = open( outdir+"/"+statime.strftime('%Y%m%d') + "_to_" +endtime.strftime('%Y%m%d') + "_summary.txt", "w")
+    if "time" in self._MeasuredList:
+      f.write( "Run time: %s to %s \n" % ( statime.strftime('%Y.%m.%d'), endtime.strftime('%Y.%m.%d') ) )
+      f.write( "Number of runs: %d \n " % self._number_runs )
+      f.write( " the average total time used in h:m:s is: %s\n" % datetime.timedelta( seconds= sum(self._TotalTimePassed, datetime.timedelta()).total_seconds() / self._number_runs ) )
+    if "altitude" in self._MeasuredList:
+      f.write( " the average number of meters assended: %.1f meters. \n" % ( sum( self._AscendMeters ) / self._number_runs ) )
+      f.write( " the average number of meters desended: %.1f meters. \n" % ( sum( self._DescendMeters ) / self._number_runs ) )
+    if "speed" in self._MeasuredList:
+      f.write( " the time of fastest 1Km in h:m:s is:  %s\n" %  min(self._FastestKmTime) )
+      f.write( " the slowest speed in: %.2f m/s.  \n" % min(self._MinimumSpeed) )
+      f.write( " the fastest speed in: %.2f m/s.  \n" % max(self._MaximumSpeed) )
+      f.write( " the average speed in: %.2f m/s.  \n" % (sum(self._AverageSpeed) / self._number_runs ) )
+      f.write( " the slowest pace in h:m:s per Km:  %s\n" % max(self._MinimumPaceKm) )
+      f.write( " the fastest pace in h:m:s per Km:  %s\n" % min(self._MaximumPaceKm) )
+      f.write( " the average pace in h:m:s per Km:  %s\n" % datetime.timedelta( seconds= sum(self._fltAveragePaceKm) * 60. ) ) 
+      f.write( " the slowest pace in h:m:s per mile:  %s\n" % max(self._MinimumPaceMile ) )
+      f.write( " the fastest pace in h:m:s per mile:  %s\n" % min(self._MaximumPaceMile ) )
+      f.write( " the average pace in h:m:s per mile:  %s\n" % datetime.timedelta( seconds= sum(self._fltAveragePaceMile) * 60. ) ) 
+    if "cadence" in self._MeasuredList:
+      f.write( " the minimum cadence in rpm:  %s\n" % min( self._MinimumCadence ) )
+      f.write( " the maximum cadence in rpm:  %s\n" % max( self._MaximumCadence ) )
+      f.write( " the best average cadence in rpm:  %s\n" % max(self._AverageCadence ) )
+      f.write( " the worst average cadence in rpm:  %s\n" % min(self._AverageCadence ) )
+      f.write( " the overall average cadence in rpm:  %s\n" % (sum(self._AverageCadence ) / self._number_runs ) )
+    if "heart_rate" in self._MeasuredList:
+      f.write( " the minimum heart rate in bpm :  %s\n" % min(self._MinimumHeartRate) )
+      f.write( " the maximum heart rate in bpm :  %s\n" % max(self._MaximumHeartRate) )
+      f.write( " the lowest average heart rate in bpm :  %s\n" % min(self._AverageHeartRate) )
+      f.write( " the highest average heart rate in bpm :  %s\n" % max(self._AverageHeartRate) )
+      f.write( " the overall average heart rate in bpm :  %s\n" % (sum(self._AverageHeartRate) / self._number_runs ) )
+    if "distance" in self._MeasuredList:
+      f.write( " the overall total distance is: %.1f miles.  \n" % (sum(self._TotalDistanceMile) ) )
+      f.write( " the average distance per run is: %.1f miles.  \n" % (sum(self._TotalDistanceMile) / self._number_runs ) )
+      f.write( " the longest distance per run is: %.1f miles.  \n" % max(self._TotalDistanceMile) )
+      f.write( " the shortest distance per run is: %.1f miles.  \n" % min(self._TotalDistanceMile) )
+      f.write( " the overall total distance is: %.1f km.  \n" % (sum(self._TotalDistanceKm) ) )
+      f.write( " the average distance per run is: %.1f km.  \n" % (sum(self._TotalDistanceKm) / self._number_runs ) )
+      f.write( " the longest distance per run is: %.1f km.  \n" % max(self._TotalDistanceKm) )
+      f.write( " the shortest distance per run is: %.1f km.  \n" % min(self._TotalDistanceKm) )
+  
+    f.close()
+   
+ 
+  def draw(self, outdir):
+    '''Draw plots of interest summarizing all runs.
+    '''
 
-  def getStartTime(self):
-    ''' Return the list of starting time for each run '''
-    return self._StartTime
+    if self._number_runs <= 1:
+      logging.error( ' Number of runs <= 1. No plot today. Return! ')
+      return None
+  
+    firsttime = self._StartTime[0]
+    lasttime = self._StartTime[ self._number_runs - 1 ]
+    outtime_tag = firsttime.strftime('%Y%m%d_') + lasttime.strftime('%Y%m%d')
 
-  def getEndTime(self):
-    ''' Return the list of ending time for each run '''
-    return self._EndTime
 
-  def getAverageAltitude(self):
-    ''' Return the list of average altitude for each run '''
-    return self._AverageAltitude
+    if "distance" in self._MeasuredList:
+      draw_xyplot( self._TotalDistanceKm, None, xlab = "Distance per Run (Km)", ylab = "Number of Runs", title = "",
+        out = outdir+"/"+outtime_tag+"_distanceKm.pdf", leg = None, plot_type = "Hist")
+      draw_xyplot( self._TotalDistanceMile, None, xlab = "Distance per Run (Mile)", ylab = "Number of Runs", title = "",
+        out = outdir+"/"+outtime_tag+"_distanceMile.pdf", leg = None, plot_type = "Hist")
 
-  def getAscendMeters(self):
-    ''' Return the list of ascended distance in meters for each run '''
-    return self._AscendMeters
+    if "distance" in self._MeasuredList and "speed" in self._MeasuredList:
+      draw_xyplot( self._TotalDistanceKm, self._fltAveragePaceKm, xlab = "Distance per Run (Km)", ylab = "Pace (minutes per Km)", title = "",
+        out = outdir+"/"+outtime_tag+"_distanceKm_vs_pace.pdf", leg = None, plot_type = "Scatter")
 
-  def getDescendMeters(self):
-    ''' Return the list of descended distance in meters for each run '''
-    return self._DescendMeters
-
-  def getFastestKmTime(self):
-    ''' Return the list of fastest 1Km time in timedelta for each run '''
-    return self._FastestKmTime
-
-  def getMinimumSpeed(self):
-    ''' Return the list of lowest speed in m/s for each run '''
-    return self._MinimumSpeed
-
-  def getMaximumSpeed(self):
-    ''' Return the list of highest speed in m/s for each run '''
-    return self._MaximumSpeed
-
-  def getAverageSpeed(self):
-    ''' Return the list of average speed in m/s for each run '''
-    return self._AverageSpeed      
-
-  def getMinimumPaceKm(self):
-    ''' Return the list of lowest pace in timedelta per Km for each run '''
-    return self._MinimumPaceKm
-
-  def getMaximumPaceKm(self):
-    ''' Return the list of highest pace in timedelta per Km for each run '''
-    return self._MaximumPaceKm
-
-  def getAveragePaceKm(self):
-    ''' Return the list of average pace in timedelta per Km for each run '''
-    return self._AveragePaceKm
-
-  def getfltAveragePaceKm (self):
-    ''' Return the list of average pace in minutes/Km for each run '''
-    return self._fltAveragePaceKm
-
-  def getMinimumPaceMile(self):
-    ''' Return the list of lowest pace in timedelta per mile for each run '''
-    return self._MinimumPaceMile   
-
-  def getMaximumPaceMile(self):
-    ''' Return the list of highest pace in timedelta per mile for each run '''
-    return self._MaximumPaceMile   
-
-  def getAveragePaceMile(self):
-    ''' Return the list of average pace in timedelta per mile for each run '''
-    return self._AveragePaceMile   
-
-  def getfltAveragePaceMile(self):
-    ''' Return the list of average pace in minutes/mile for each run '''
-    return self._fltAveragePaceMile
-
-  def getMinimumCadence(self):
-    ''' Return the list of minimum cadence while moving for each run '''
-    return self._MinimumCadence
-
-  def getMaximumCadence(self):
-    ''' Return the list of maximum cadence while moving for each run '''
-    return self._MaximumCadence
-
-  def getAverageCadence(self):
-    ''' Return the list of average cadence while moving for each run '''
-    return self._AverageCadence
-
-  def getMinimumHeartRate(self):
-    ''' Return the list of minimum heart rate while moving for each run '''
-    return self._MinimumHeartRate
-
-  def getMaximumHeartRate(self):
-    ''' Return the list of maximum heart rate while moving for each run '''
-    return self._MaximumHeartRate  
-
-  def getAverageHeartRate(self):
-    ''' Return the list of average heart rate while moving for each run '''
-    return self._AverageHeartRate
-
-  def getTotalDistanceMile(self):
-    ''' Return the list of total distance in miles for each run '''
-    return self._TotalDistanceMile 
-
-  def getTotalDistanceKm(self):
-    ''' Return the list of total distance in Km for each run '''
-    return self._TotalDistanceKm   
+    if "heart_rate" in self._MeasuredList:
+      draw_xyplot( self._AverageHeartRate, None,
+        xlab = "Heart Rate (BPM)", ylab = "Number of Runs", title = "",
+        out = outdir+"/"+outtime_tag+"_heartrate.pdf", leg = None, plot_type = "Hist", ymin = 100, ymax = 200)
+  
+    # 
+    # Plot altitude vs time
+    # 
+    if "altitude" in self._MeasuredList and "time" in self._MeasuredList:
+      draw_xyplot( self._StartTime, self._AscendMeters, 
+        xlab = "running date", ylab = "Ascend per Run (meters)", title = "",
+        out = outdir+"/"+outtime_tag+"_altitude_v_date.pdf", leg = None, plot_type = "Datetime_Scatter")
+  
+    # 
+    # Plot pace vs time
+    # 
+    if "speed" in self._MeasuredList and "time" in self._MeasuredList:
+      # self._AveragePaceKm is in deltatime
+      #avgPaceKmFloat = [ pc.total_seconds() / 60.0 for pc in self._AveragePaceKm ]
+      draw_xyplot( self._StartTime, self._fltAveragePaceKm,
+        xlab = "running date", ylab = "Pace (minutes per Km)", title = "",
+        out = outdir+"/"+outtime_tag+"_pace_v_date.pdf", leg = None, plot_type = "Datetime_Scatter")
+      draw_xyplot( self._fltAveragePaceKm, None, xlab = "Pace (minutes per Km)", ylab = "Number of Runs", title = "",
+        out = outdir+"/"+outtime_tag+"_pace.pdf", leg = None, plot_type = "Hist")
+   
+    # 
+    # Plot heart rate vs time
+    # 
+    if "heart_rate" in self._MeasuredList and "time" in self._MeasuredList:
+      draw_xyplot( self._StartTime, self._AverageHeartRate, 
+        xlab = "running date", ylab = "Heart Rate (BPM)", title = "",
+        out = outdir+"/"+outtime_tag+"_heartrate_v_date.pdf", leg = None, plot_type = "Datetime_Scatter", ymin = 100, ymax = 200)
+      draw_xyplot( self._AverageHeartRate, None, xlab = "Average Heart Rate (RPM) per Run", ylab = "Number of Runs", title = "",
+        out = outdir+"/"+outtime_tag+"_heartrate.pdf", leg = None, plot_type = "Hist", xmin = 100, xmax = 200)
+  
+    # 
+    # Plot pace vs heart_rate
+    # 
+    if "heart_rate" in self._MeasuredList and "speed" in self._MeasuredList:
+      draw_xyplot( self._AverageHeartRate, self._fltAveragePaceKm,
+        xlab = "Heart Rate (BPM)", ylab = "Pace (minutes per Km)", title = "",
+        out = outdir+"/"+outtime_tag+"_pace_v_heartrate.pdf", leg = None, plot_type = "Scatter", xmin = 100, xmax = 200)
+  
+    # 
+    # Plot pace vs cadence
+    # 
+    if "cadence" in self._MeasuredList and "speed" in self._MeasuredList:
+      draw_xyplot( self._AverageCadence, self._fltAveragePaceKm,
+        xlab = "Cadence (RPM)", ylab = "Pace (minutes per Km)", title = "",
+        out = outdir+"/"+outtime_tag+"_pace_v_cadence.pdf", leg = None, plot_type = "Scatter", xmin = 75, xmax = 95)
   
 def main():
   '''
-    Example: python read_sequence.py input.txt 
+    Example: python read_sequence.py input.txt out_dir 
     Note:    this example is tested with python version 2.7
     Argu:  input.txt contains the list of all *fit* inputs.
+           out_dir   the output folder.
   '''
 
-  if len(sys.argv) < 1:
-    print 'Usage: ', sys.argv[0], ' in_dir' 
+  if len(sys.argv) < 2:
+    print 'Usage: ', sys.argv[0], ' in_dir [out_dir] ' 
     return 0
 
+  outdir = '.'
+  if len(sys.argv) >= 3:
+    outdir = sys.argv[2]
+
+  if outdir == "": outdir = "."
+  elif not os.path.isdir( outdir ):
+    logging.warning('Output folder: ' + outdir + ' NOT found. Create one now! ')
+    os.makedirs( outdir )
+
+
   rrf = read_sequence( sys.argv[1] )
-  print 'Reading input: ', sys.argv[1], '. Number of runs: %d ' % rrf.size()
+  print 'Reading input: ', sys.argv[1], '.'
   if rrf.size() <= 0:
     print 'input ', sys.argv[1], ' not correct.'
     return None
+
+  print 'Start writing summary to: ', outdir, '!'
+  rrf.write_summary( outdir )
+
+  print 'Start making plots to: ', outdir, '.'
+  rrf.draw( outdir )
+      
 
 if __name__ == '__main__' : 
 

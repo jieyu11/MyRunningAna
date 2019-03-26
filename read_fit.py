@@ -1,11 +1,42 @@
+'''Analyze one run record.
+
+  :Author: Jie Yu <jie.yu@cern.ch>
+  :Date:   |today|
+  :Synopsis: Do analysis on one run record and make results.
+  :Details:  A running record is read with run_record class. This code reads the key variables of the run and provide 
+             a summary of the run and a list of plots of interest.
+
+'''
+
+
 import os
 import logging
 import sys                    
 from run_record import *
 import matplotlib.pyplot as plt
   
-
 def draw_xyplot(xlist, ylist, xlab, ylab, title, out, leg, legloc = 'upper right', xsize_inch = 10, ysize_inch = 8, scatter = False):
+  '''Draw plots with data from x-axis and y-axis.
+
+    Args:
+      ================== =================================
+      argument             note
+      ================== =================================
+      xlist (list)        x-axis data in list<>
+      ylist (list)        y-ayis data in list<>
+      xlab (str)          x-axis label
+      ylab (str)          y-ayis label
+      title (str)         title of the plot
+      out (str)           output name of the plot
+      leg (obj)           instance of a legend object
+      legloc (int)        location of the legend
+      xsize_inch (float)  number of inches in x-axis
+      ysize_inch (float)  number of inches in y-ayis
+      scatter (bool)      True  draw scatter, False  curve 
+      ================== =================================
+
+  '''
+
   plt.clf()
   plt.gcf().set_size_inches(xsize_inch, ysize_inch) # default 8., 6.
   if scatter:
@@ -23,9 +54,12 @@ def draw_xyplot(xlist, ylist, xlab, ylab, title, out, leg, legloc = 'upper right
   plt.savefig( out )
  
 class read_fit:
-  '''
+  '''Document for class read_fit
+
     Purpose: read one running record of garmin.fit file and make a summary and a few plots of interest.
+
     Example: 
+    .. py:code:: 
       rrf = read_fit( "garmin.fit" )
       if rrf.isValid() is None:
         return None
@@ -35,12 +69,20 @@ class read_fit:
   '''
 
   def __init__(self, ffitname ):
+    '''Constructor of class read_fit.
+
+      Use class run_record to read the *fit* input file, and calculate the key variables.
+
+      Parameter:
+        ffitname: input raw *fit* input file.
+    '''
+
     self._TotalTimePassed   = None 
     self._StartTime         = None
     self._EndTime           = None
     self._AverageAltitude   = None
-    self._AssendMeters      = None
-    self._DesendMeters      = None
+    self._AscendMeters      = None
+    self._DescendMeters      = None
     self._FastestKmTime     = None
     self._MinimumSpeed      = None
     self._MaximumSpeed      = None
@@ -79,8 +121,8 @@ class read_fit:
         self._EndTime = self._rrd.getEndTime()
       if "altitude" in measured_list:
         self._AverageAltitude = self._rrd.getAverageAltitude()
-        self._AssendMeters = self._rrd.getAssendMeters()
-        self._DesendMeters = self._rrd.getDesendMeters()
+        self._AscendMeters = self._rrd.getAscendMeters()
+        self._DescendMeters = self._rrd.getDescendMeters()
       if "speed" in measured_list:
         self._FastestKmTime = self._rrd.getFastestKmTime()
         self._MinimumSpeed = self._rrd.getMinimumSpeed()
@@ -113,11 +155,19 @@ class read_fit:
       self._dist_list = self._rrd.getDistanceList()
    
   def isValid(self):
+    '''Check the validity of input file. Return None if it is invalid.
+    '''
     if self._rrd is None:
       return None
     return True
     
   def write_summary(self, outdir ):
+    '''Write out a summary of the run.
+
+      Parameter:
+        outdir: output file name.
+    '''
+
     if self._rrd is None:
       return None
   
@@ -135,8 +185,8 @@ class read_fit:
       f.write( " the stopping time point in h:m:s is:  %s\n" % self._EndTime )
     if "altitude" in measured_list:
       f.write( " average altitude in meters: %.1f meters. \n" %    self._AverageAltitude )
-      f.write( " the number of meters assended: %.1f meters. \n" % self._AssendMeters )
-      f.write( " the number of meters desended: %.1f meters. \n" % self._DesendMeters )
+      f.write( " the number of meters assended: %.1f meters. \n" % self._AscendMeters )
+      f.write( " the number of meters desended: %.1f meters. \n" % self._DescendMeters )
     if "speed" in measured_list:
       f.write( " the time of fastest 1Km in h:m:s is:  %s\n" %        self._FastestKmTime )
       f.write( " the slowest speed in: %.2f m/s.  \n" % self._MinimumSpeed )
@@ -164,6 +214,17 @@ class read_fit:
    
  
   def draw(self, outdir):
+    '''Draw the plots of interest.
+
+      Parameter outdir output file name.
+      The list of output plots, given the variables in the input file:
+        altitude vs. time
+        pace vs. time
+        heartrate vs. time
+        pace vs. heartrate
+        pace vs. cadence
+    '''
+
     if self._rrd is None:
       logging.error('Instance of run_record class is not found.') 
       return None
@@ -228,6 +289,12 @@ class read_fit:
         out = outdir+"/"+outtime_tag+"_pace_v_cadence.pdf", leg = None, scatter = True)
   
 def main():
+  '''Main function.
+
+    :Example: python read_fit.py a.fit [OUT_DIR]
+ 
+  '''
+
   if len(sys.argv) < 2:
     print 'Usage: ', sys.argv[0], ' [ a.fit ] [out_dir] ' 
     return 0
@@ -260,6 +327,8 @@ def main():
       
 
 if __name__ == '__main__' : 
+  '''Run Main function.
+  '''
 
   main()
 

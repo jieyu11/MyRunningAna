@@ -1,0 +1,236 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Modules: read_sequence &#8212; myStravaRun 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Modules: read_fit" href="code1.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-read_sequence">
+<span id="modules-read-sequence"></span><h1>Modules: read_sequence<a class="headerlink" href="#module-read_sequence" title="Permalink to this headline">¶</a></h1>
+<p>Analyze a series of records.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Author:</th><td class="field-body">Jie Yu &lt;<a class="reference external" href="mailto:jie&#46;yu&#37;&#52;&#48;cern&#46;ch">jie<span>&#46;</span>yu<span>&#64;</span>cern<span>&#46;</span>ch</a>&gt;</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Date:</th><td class="field-body">Nov 02, 2018</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Synopsis:</th><td class="field-body">Do analysis on a series of records and make results.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Details:</th><td class="field-body">This code makes use of a list of input .fit files and extract / calculate useful information about the runs. 
+These output variables include total distance, average mileage per run, average cadence per run, average 
+heart rate per run, etc. These help to see a patten in the list of runs during a longer period of time.</td>
+</tr>
+</tbody>
+</table>
+<dl class="function">
+<dt id="read_sequence.draw_xyplot">
+<code class="descclassname">read_sequence.</code><code class="descname">draw_xyplot</code><span class="sig-paren">(</span><em>xlist</em>, <em>ylist</em>, <em>xlab</em>, <em>ylab</em>, <em>title</em>, <em>out</em>, <em>leg</em>, <em>legloc='upper right'</em>, <em>xsize_inch=10</em>, <em>ysize_inch=8</em>, <em>plot_type='Normal'</em>, <em>xmin=999.0</em>, <em>xmax=0.0</em>, <em>ymin=999.0</em>, <em>ymax=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/read_sequence.html#draw_xyplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#read_sequence.draw_xyplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw plots with data from x-axis and y-axis.</p>
+<p>Parameters:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="28%" />
+<col width="73%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">arg</th>
+<th class="head">note</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>xlist</td>
+<td>x-axis data in list&lt;&gt;.</td>
+</tr>
+<tr class="row-odd"><td>ylist</td>
+<td>y-ayis data in list&lt;&gt;.</td>
+</tr>
+<tr class="row-even"><td>xlab</td>
+<td>x-axis label.</td>
+</tr>
+<tr class="row-odd"><td>ylab</td>
+<td>y-ayis label.</td>
+</tr>
+<tr class="row-even"><td>title</td>
+<td>title of the plot.</td>
+</tr>
+<tr class="row-odd"><td>out</td>
+<td>output name of the plot.</td>
+</tr>
+<tr class="row-even"><td>leg</td>
+<td>instance of a legend object.</td>
+</tr>
+<tr class="row-odd"><td>legloc</td>
+<td>location of the legend.</td>
+</tr>
+<tr class="row-even"><td>xsize_inch</td>
+<td>number of inches in x-axis.</td>
+</tr>
+<tr class="row-odd"><td>ysize_inch</td>
+<td>number of inches in y-ayis.</td>
+</tr>
+<tr class="row-even"><td>plot_type</td>
+<td>“Normal”:  plot()
+“Hist”:    hist()
+“Scatter”: scatter()</td>
+</tr>
+<tr class="row-odd"><td>xmin</td>
+<td>minimum of x-axis</td>
+</tr>
+<tr class="row-even"><td>xmax</td>
+<td>maximum of x-axis</td>
+</tr>
+<tr class="row-odd"><td>ymin</td>
+<td>minimum of y-axis</td>
+</tr>
+<tr class="row-even"><td>ymax</td>
+<td>maximum of y-axis</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="read_sequence.main">
+<code class="descclassname">read_sequence.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/read_sequence.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#read_sequence.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example: python read_sequence.py input.txt out_dir 
+Note:    this example is tested with python version 2.7
+Argu:  input.txt contains the list of all <em>fit</em> inputs.</p>
+<blockquote>
+<div>out_dir   the output folder.</div></blockquote>
+</dd></dl>
+
+<dl class="class">
+<dt id="read_sequence.read_sequence">
+<em class="property">class </em><code class="descclassname">read_sequence.</code><code class="descname">read_sequence</code><span class="sig-paren">(</span><em>fit_input_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/read_sequence.html#read_sequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#read_sequence.read_sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Document for class read_sequence</p>
+<p>Purpose: read a list of files of <a href="#id1"><span class="problematic" id="id2">*</span></a>.fit and make a summary and a few plots of interest.</p>
+<dl class="method">
+<dt id="read_sequence.read_sequence.draw">
+<code class="descname">draw</code><span class="sig-paren">(</span><em>outdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/read_sequence.html#read_sequence.draw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#read_sequence.read_sequence.draw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draw plots of interest summarizing all runs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="read_sequence.read_sequence.size">
+<code class="descname">size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/read_sequence.html#read_sequence.size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#read_sequence.read_sequence.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Size of the input: number of runs read.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="read_sequence.read_sequence.write_summary">
+<code class="descname">write_summary</code><span class="sig-paren">(</span><em>outdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/read_sequence.html#read_sequence.write_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#read_sequence.read_sequence.write_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write out summary out of all runs.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/r2.png" alt="Logo"/>
+            </a></p>
+<h1 class="logo"><a href="index.html">myStravaRun</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">How To: A quick tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="project.html">Project Summary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code0.html">Modules: run_record</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code1.html">Modules: read_fit</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Modules: read_sequence</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="code1.html" title="previous chapter">Modules: read_fit</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Jie Yu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/code2.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,33 @@
+Run time: 2016.11.23 to 2018.10.03 
+Number of runs: 245 
+  the average total time used in h:m:s is: 0:55:36.616327
+ the average number of meters assended: 79.6 meters. 
+ the average number of meters desended: 81.3 meters. 
+ the time of fastest 1Km in h:m:s is:  0:02:09
+ the slowest speed in: 0.20 m/s.  
+ the fastest speed in: 11.21 m/s.  
+ the average speed in: 3.08 m/s.  
+ the slowest pace in h:m:s per Km:  1:21:18
+ the fastest pace in h:m:s per Km:  0:01:29
+ the average pace in h:m:s per Km:  22:18:06
+ the slowest pace in h:m:s per mile:  2:10:50
+ the fastest pace in h:m:s per mile:  0:02:23
+ the average pace in h:m:s per mile:  1 day, 11:54:40
+ the minimum cadence in rpm:  0
+ the maximum cadence in rpm:  124
+ the best average cadence in rpm:  90
+ the worst average cadence in rpm:  0
+ the overall average cadence in rpm:  84
+ the minimum heart rate in bpm :  0
+ the maximum heart rate in bpm :  220
+ the lowest average heart rate in bpm :  0
+ the highest average heart rate in bpm :  179
+ the overall average heart rate in bpm :  144
+ the overall total distance is: 1527.3 miles.  
+ the average distance per run is: 6.2 miles.  
+ the longest distance per run is: 26.2 miles.  
+ the shortest distance per run is: 1.5 miles.  
+ the overall total distance is: 2458.0 km.  
+ the average distance per run is: 10.0 km.  
+ the longest distance per run is: 42.2 km.  
+ the shortest distance per run is: 2.4 km.  
